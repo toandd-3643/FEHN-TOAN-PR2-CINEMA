@@ -1,5 +1,6 @@
 <template>
-  <Teleport to="#toast-container">
+  <!-- ✅ Kiểm tra mounted và target existence -->
+  <Teleport to="#toast-container" :disabled="!mounted || !hasTarget">
     <TransitionGroup name="toast" tag="div" class="toast-list">
       <div
         v-for="toast in toasts"
@@ -38,10 +39,21 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
+<script setup>
 const { toasts, remove } = useToast()
+const mounted = ref(false)
+const hasTarget = ref(false)
 
-const getToastIcon = (type: string) => {
+// ✅ Kiểm tra khi component mounted
+onMounted(() => {
+  mounted.value = true
+  // Kiểm tra target container có tồn tại không
+  nextTick(() => {
+    hasTarget.value = !!document.querySelector('#toast-container')
+  })
+})
+
+function getToastIcon(type) {
   const icons = {
     success: 'mdi:check-circle',
     error: 'mdi:alert-circle',
@@ -73,6 +85,7 @@ const getToastIcon = (type: string) => {
   overflow: hidden;
   max-width: 400px;
   word-wrap: break-word;
+  pointer-events: auto; /* ✅ Enable pointer events */
 }
 
 .toast-success {

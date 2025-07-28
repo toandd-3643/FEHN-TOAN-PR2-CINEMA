@@ -15,9 +15,11 @@
           <NuxtLink to="/">Liên hệ</NuxtLink>
         </div>
         <div class="nav-actions">
-          <NuxtLink to="/login" class="btn btn-outline-sm">
-            Đăng nhập
-          </NuxtLink>
+          <template v-if="!authStore.isLoggedIn">
+            <NuxtLink to="/login" class="btn btn-outline-sm">
+              Đăng nhập
+            </NuxtLink>
+          </template>
         </div>
       </nav>
     </header>
@@ -35,6 +37,10 @@
     </footer>
   </div>
 </template>
+
+<script setup>
+const authStore = useAuthStore()
+</script>
 
 <style scoped>
 .app-layout {
@@ -112,7 +118,7 @@
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .nav-links {
     gap: 1rem;
   }

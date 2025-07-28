@@ -1,6 +1,9 @@
 <template>
   <div id="app">
-    <!-- Loading Screen với ClientOnly -->
+    <!-- ✅ Tạo toast container trước khi Toast component mount -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <!-- Loading Screen -->
     <ClientOnly>
       <Transition name="fade">
         <div v-if="pending" class="global-loading">
@@ -21,7 +24,7 @@
         <NuxtPage />
       </NuxtLayout>
 
-      <!-- Toast Component - Wrap trong ClientOnly -->
+      <!-- Toast Component -->
       <ClientOnly>
         <CommonToast />
       </ClientOnly>
@@ -29,24 +32,22 @@
   </div>
 </template>
 
-
 <script setup>
-// Sửa cách khởi tạo để tránh hydration mismatch
 const pending = ref(true)
 
-// Chỉ chạy trên client
 onMounted(async () => {
   try {
-    const authStore = useAuthStore()
-    const token = useCookie('auth-token')
-    
-    if (token.value) {
-      await authStore.fetchUser()
+    if (typeof useAuthStore === 'function') {
+      const authStore = useAuthStore()
+      const token = useCookie('auth-token')
+      
+      if (token.value) {
+        await authStore.fetchUser()
+      }
     }
   } catch (error) {
     console.warn('Auth initialization failed:', error)
   } finally {
-    // Set timeout nhỏ để tránh flash
     setTimeout(() => {
       pending.value = false
     }, 100)
@@ -55,22 +56,35 @@ onMounted(async () => {
 
 // SEO
 useHead({
-  titleTemplate: (title) => title ? `${title} - MovieBooking` : 'MovieBooking - Đặt vé xem phim online',
-  meta: [
-    { charset: 'utf-8' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { name: 'theme-color', content: '#667eea' }
-  ]
-})
-
-useSeoMeta({
-  title: 'MovieBooking - Đặt vé xem phim online',
-  description: 'Đặt vé xem phim online nhanh chóng, tiện lợi tại MovieBooking'
+  titleTemplate: (title) => title ? `${title} - MovieBooking` : 'MovieBooking - Đặt vé xem phim online'
 })
 </script>
 
 <style>
 /* Global styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 400px;
+  width: 100%;
+  pointer-events: none; /* Cho phép click through khi không có toast */
+}
+
+.toast-container > * {
+  pointer-events: auto; /* Enable pointer events cho toast items */
+}
+
+@media (max-width: 768px) {
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;

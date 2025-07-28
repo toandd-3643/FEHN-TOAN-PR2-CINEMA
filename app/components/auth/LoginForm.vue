@@ -62,7 +62,7 @@
           <span class="checkmark"></span>
           Ghi nhớ đăng nhập
         </label>
-        <NuxtLink to="/forgot-password" class="forgot-link">
+        <NuxtLink to="" class="forgot-link">
           Quên mật khẩu?
         </NuxtLink>
       </div>
@@ -134,20 +134,25 @@ const handleLogin = async () => {
   if (!validateForm()) return
   
   try {
+    // ✅ Auth store sẽ handle toast, không cần duplicate ở đây
     await authStore.login({
       email: form.email,
       password: form.password,
       rememberMe: form.rememberMe
     })
     
+    // ✅ Redirect sau khi login thành công
     const redirect = router.currentRoute.value.query.redirect as string || '/'
     await router.push(redirect)
   } catch (error: any) {
+    // ✅ Chỉ handle form-specific errors, toast đã được handle trong store
     if (error.status === 401) {
       errors.email = 'Email hoặc mật khẩu không đúng'
-    } else {
-      errors.email = 'Có lỗi xảy ra, vui lòng thử lại'
+      errors.password = 'Email hoặc mật khẩu không đúng'
+    } else if (error.status === 400) {
+      errors.email = 'Thông tin đăng nhập không hợp lệ'
     }
+    // Không cần show toast ở đây vì store đã handle
   }
 }
 </script>
