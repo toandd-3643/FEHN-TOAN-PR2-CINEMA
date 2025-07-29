@@ -1,7 +1,13 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const { isLoggedIn } = useAuthStore()
+  // ✅ Kiểm tra store có tồn tại không
+  if (typeof useAuthStore !== 'function') {
+    return
+  }
   
-  if (isLoggedIn) {
+  const authStore = useAuthStore()
+  
+  // ✅ Kiểm tra isLoggedIn là reactive value
+  if (authStore.isLoggedIn) {
     return navigateTo('/')
   }
 })

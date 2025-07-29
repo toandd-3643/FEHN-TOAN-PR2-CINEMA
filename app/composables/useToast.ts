@@ -1,3 +1,4 @@
+// app/composables/useToast.ts
 interface ToastOptions {
   title?: string
   message: string
@@ -25,7 +26,7 @@ export const useToast = () => {
 
     toasts.value.push(toast)
 
-    // Auto remove
+    // Auto remove sau duration
     if (!toast.persistent && toast.duration && toast.duration > 0) {
       setTimeout(() => {
         remove(toast.id)
@@ -46,20 +47,41 @@ export const useToast = () => {
     toasts.value = []
   }
 
+  // ✅ Enhanced convenience methods với better defaults
   const success = (message: string, options?: Partial<ToastOptions>) => {
-    return show({ ...options, message, type: 'success' })
+    return show({ 
+      ...options, 
+      message, 
+      type: 'success',
+      duration: options?.duration || 4000 
+    })
   }
 
   const error = (message: string, options?: Partial<ToastOptions>) => {
-    return show({ ...options, message, type: 'error', duration: 7000 })
+    return show({ 
+      ...options, 
+      message, 
+      type: 'error', 
+      duration: options?.duration || 6000 
+    })
   }
 
   const warning = (message: string, options?: Partial<ToastOptions>) => {
-    return show({ ...options, message, type: 'warning' })
+    return show({ 
+      ...options, 
+      message, 
+      type: 'warning',
+      duration: options?.duration || 5000 
+    })
   }
 
   const info = (message: string, options?: Partial<ToastOptions>) => {
-    return show({ ...options, message, type: 'info' })
+    return show({ 
+      ...options, 
+      message, 
+      type: 'info',
+      duration: options?.duration || 3000 
+    })
   }
 
   return {

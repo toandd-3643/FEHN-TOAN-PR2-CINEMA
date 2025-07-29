@@ -11,15 +11,45 @@
           <p class="hero-subtitle">
             Đặt vé xem phim online nhanh chóng, tiện lợi
           </p>
+          
+          <!-- ✅ Logic hiển thị buttons dựa trên trạng thái đăng nhập -->
           <div class="hero-actions">
-            <NuxtLink to="/" class="btn btn-primary btn-large">
-              <Icon name="mdi:movie" />
-              Xem phim ngay
-            </NuxtLink>
-            <NuxtLink to="/register" class="btn btn-secondary btn-large">
-              <Icon name="mdi:account-plus" />
-              Đăng ký
-            </NuxtLink>
+            <!-- Hiển thị khi chưa đăng nhập -->
+            <template v-if="!authStore.isLoggedIn">
+              <NuxtLink to="" class="btn btn-primary btn-large">
+                <Icon name="mdi:movie" />
+                Xem phim ngay
+              </NuxtLink>
+              <NuxtLink to="/register" class="btn btn-secondary btn-large">
+                <Icon name="mdi:account-plus" />
+                Đăng ký
+              </NuxtLink>
+            </template>
+
+            <!-- Hiển thị khi đã đăng nhập -->
+            <template v-else>
+              <div class="user-welcome">
+                <h3 class="welcome-text">
+                  <Icon name="mdi:account-circle" />
+                  Chào mừng, {{ authStore.user?.fullName }}!
+                </h3>
+                <div class="user-actions">
+                  <NuxtLink to="" class="btn btn-primary btn-large">
+                    <Icon name="mdi:movie" />
+                    Xem phim ngay
+                  </NuxtLink>
+                  <NuxtLink to="" class="btn btn-outline-white btn-large">
+                    <Icon name="mdi:account" />
+                    Hồ sơ
+                  </NuxtLink>
+                  <button @click="handleLogout" class="btn btn-secondary btn-large" :disabled="authStore.loading">
+                    <Icon v-if="authStore.loading" name="mdi:loading" class="spin" />
+                    <Icon v-else name="mdi:logout" />
+                    {{ authStore.loading ? 'Đang đăng xuất...' : 'Đăng xuất' }}
+                  </button>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -51,7 +81,7 @@
           </div>
         </div>
         <div class="text-center">
-          <NuxtLink to="/" class="btn btn-outline">
+          <NuxtLink to="" class="btn btn-outline">
             Xem tất cả phim
           </NuxtLink>
         </div>
@@ -89,8 +119,28 @@
     </section>
   </div>
 </template>
-
 <script setup>
+// ✅ Import auth store
+const authStore = useAuthStore()
+const router = useRouter()
+
+// ✅ Function xử lý logout
+const handleLogout = async () => {
+  try {
+    // ✅ Store sẽ handle toast notification
+    await authStore.logout()
+    
+    // ✅ Redirect về trang chủ để refresh UI
+    await router.push('/')
+    
+    // ✅ Optional: Refresh page để clear any cached data
+    // window.location.reload()
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Error toast đã được handle trong store nếu cần
+  }
+}
+
 // SEO Meta
 useSeoMeta({
   title: 'Trang chủ',
@@ -104,10 +154,8 @@ useSeoMeta({
 definePageMeta({
   title: 'Trang chủ - MovieBooking'
 })
-
-// Optional: Fetch featured data
-// const { data: featuredMovies } = await useFetch('/api/movies?featured=true')
 </script>
+
 
 <style scoped>
 /* Hero Section */
@@ -344,6 +392,79 @@ definePageMeta({
 .btn-outline:hover {
   background: #667eea;
   color: white;
+}
+
+/* ✅ User Welcome Styles */
+.user-welcome {
+  text-align: center;
+  width: 100%;
+}
+
+.welcome-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.user-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ✅ Additional button styles */
+.btn-outline-white {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.btn-outline-white:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* ✅ Loading animation */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ✅ Responsive cho user welcome */
+@media (max-width: 768px) {
+  .welcome-text {
+    font-size: 1.25rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .user-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-text {
+    font-size: 1.1rem;
+  }
+  
+  .user-actions .btn {
+    width: 100%;
+    max-width: 280px;
+  }
 }
 
 /* Animations */
