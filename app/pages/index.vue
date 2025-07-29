@@ -1,6 +1,6 @@
 <template>
   <div class="home-page">
-    <!-- Hero Section -->
+    <!-- Hero Section đơn giản -->
     <section class="hero">
       <div class="hero-background">
         <div class="hero-overlay"></div>
@@ -11,12 +11,11 @@
           <p class="hero-subtitle">
             Đặt vé xem phim online nhanh chóng, tiện lợi
           </p>
-          
-          <!-- ✅ Logic hiển thị buttons dựa trên trạng thái đăng nhập -->
+
           <div class="hero-actions">
             <!-- Hiển thị khi chưa đăng nhập -->
             <template v-if="!authStore.isLoggedIn">
-              <NuxtLink to="" class="btn btn-primary btn-large">
+              <NuxtLink to="/movies" class="btn btn-primary btn-large">
                 <Icon name="mdi:movie" />
                 Xem phim ngay
               </NuxtLink>
@@ -34,11 +33,11 @@
                   Chào mừng, {{ authStore.user?.fullName }}!
                 </h3>
                 <div class="user-actions">
-                  <NuxtLink to="" class="btn btn-primary btn-large">
+                  <NuxtLink to="/movies" class="btn btn-primary btn-large">
                     <Icon name="mdi:movie" />
                     Xem phim ngay
                   </NuxtLink>
-                  <NuxtLink to="" class="btn btn-outline-white btn-large">
+                  <NuxtLink to="/profile" class="btn btn-outline-white btn-large">
                     <Icon name="mdi:account" />
                     Hồ sơ
                   </NuxtLink>
@@ -55,40 +54,128 @@
       </div>
     </section>
 
-    <!-- Featured Movies -->
+    <!-- Featured Movies với Pagination -->
     <section class="featured-movies">
       <div class="container">
         <h2 class="section-title">Phim đang hot</h2>
-        <div class="movies-grid">
-          <div 
-            v-for="i in 6" 
-            :key="i" 
+
+        <!-- Loading state -->
+        <div v-if="moviesPending" class="loading-state">
+          <Icon name="mdi:loading" class="spin" size="48" />
+          <p>Đang tải danh sách phim...</p>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="moviesError" class="error-state">
+          <Icon name="mdi:alert-circle" size="48" />
+          <p>Không thể tải danh sách phim. Vui lòng thử lại sau.</p>
+          <button @click="refreshMovies()" class="btn btn-outline">
+            <Icon name="mdi:refresh" />
+            Thử lại
+          </button>
+        </div>
+
+        <!-- Movies Grid -->
+        <div v-else-if="movies && movies.length > 0" class="movies-grid">
+          <NuxtLink 
+            v-for="movie in movies" 
+            :key="movie.id" 
+            :to="`/movies/${movie.id}`" 
             class="movie-card"
           >
             <div class="movie-poster">
-              <div class="placeholder-poster">
+              <img 
+                v-if="movie.poster" 
+                :src="movie.poster" 
+                :alt="movie.title"
+                @error="handleImageError"
+              />
+              <div v-else class="placeholder-poster">
                 <Icon name="mdi:movie" size="48" />
               </div>
-            </div>
-            <div class="movie-info">
-              <h3 class="movie-title">Phim mẫu {{ i }}</h3>
-              <p class="movie-genre">Hành động, Phiêu lưu</p>
-              <div class="movie-rating">
-                <Icon name="mdi:star" />
-                <span>8.5</span>
+
+              <!-- Overlay with play button -->
+              <div class="movie-overlay">
+                <div class="play-button">
+                  <Icon name="mdi:play" size="32" />
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="text-center">
-          <NuxtLink to="" class="btn btn-outline">
-            Xem tất cả phim
+
+            <div class="movie-info">
+              <h3 class="movie-title" :title="movie.title">{{ movie.title }}</h3>
+              <p class="movie-genre">{{ movie.genre }}</p>
+              <div class="movie-meta">
+                <div class="movie-rating" v-if="movie.rating">
+                  <Icon name="mdi:star" />
+                  <span>{{ movie.rating.toFixed(1) }}</span>
+                </div>
+                <span class="movie-duration">{{ movie.duration }} phút</span>
+              </div>
+              <p class="movie-director">Đạo diễn: {{ movie.director }}</p>
+              <div class="movie-status" :class="`status-${movie.status.toLowerCase()}`">
+                {{ getStatusText(movie.status) }}
+              </div>
+            </div>
           </NuxtLink>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else class="empty-state">
+          <Icon name="mdi:movie-off" size="64" />
+          <h3>Chưa có phim nào</h3>
+          <p>Hiện tại chưa có phim nào đang chiếu.</p>
+        </div>
+
+        <!-- ✅ Pagination Component -->
+        <div v-if="pagination.totalPages > 1" class="pagination-wrapper">
+          <nav class="pagination">
+            <!-- Previous button -->
+            <button 
+              @click="prevPage" 
+              :disabled="!pagination.hasPrevPage"
+              class="pagination-btn"
+              :class="{ disabled: !pagination.hasPrevPage }"
+            >
+              <Icon name="mdi:chevron-left" />
+              Trước
+            </button>
+
+            <!-- Page numbers -->
+            <div class="pagination-numbers">
+              <button
+                v-for="page in getVisiblePages()"
+                :key="page"
+                @click="goToPage(page)"
+                class="pagination-number"
+                :class="{ active: page === currentPage }"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <!-- Next button -->
+            <button 
+              @click="nextPage" 
+              :disabled="!pagination.hasNextPage"
+              class="pagination-btn"
+              :class="{ disabled: !pagination.hasNextPage }"
+            >
+              Sau
+              <Icon name="mdi:chevron-right" />
+            </button>
+          </nav>
+
+          <!-- Pagination info -->
+          <div class="pagination-info">
+            Hiển thị {{ pagination.startIndex }} - {{ pagination.endIndex }} 
+            trong tổng số {{ pagination.totalItems }} phim
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Features -->
+    <!-- Features (giữ nguyên) -->
     <section class="features">
       <div class="container">
         <h2 class="section-title">Tại sao chọn MovieBooking?</h2>
@@ -119,42 +206,122 @@
     </section>
   </div>
 </template>
-<script setup>
-// ✅ Import auth store
+
+<script setup lang="ts">
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
-// ✅ Function xử lý logout
+// ✅ Pagination state
+const currentPage = ref(parseInt(route.query.page as string) || 1)
+const itemsPerPage = ref(4)
+
+// ✅ Fetch movies với pagination
+const { data: moviesData, pending: moviesPending, error: moviesError, refresh: refreshMovies } = await useFetch('/api/movies/movies', {
+  query: {
+    page: currentPage,
+    limit: itemsPerPage,
+    status: 'NOW_SHOWING'
+  },
+  watch: [currentPage]
+})
+
+// Computed properties
+const movies = computed(() => moviesData.value?.data || [])
+const pagination = computed(() => moviesData.value?.pagination || {})
+
+// ✅ Pagination methods
+const goToPage = (page) => {
+  if (page < 1 || page > pagination.value.totalPages) return
+  
+  currentPage.value = page
+  
+  // Update URL
+  router.push({
+    query: { ...route.query, page }
+  })
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const nextPage = () => {
+  if (pagination.value.hasNextPage) {
+    goToPage(currentPage.value + 1)
+  }
+}
+
+const prevPage = () => {
+  if (pagination.value.hasPrevPage) {
+    goToPage(currentPage.value - 1)
+  }
+}
+
+// ✅ Get visible page numbers
+const getVisiblePages = () => {
+  const total = pagination.value.totalPages
+  const current = currentPage.value
+  const delta = 2
+  
+  let start = Math.max(1, current - delta)
+  let end = Math.min(total, current + delta)
+  
+  if (end - start < delta * 2) {
+    if (start === 1) {
+      end = Math.min(total, start + delta * 2)
+    } else {
+      start = Math.max(1, end - delta * 2)
+    }
+  }
+  
+  const pages = []
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+}
+
+// Existing methods
 const handleLogout = async () => {
   try {
-    // ✅ Store sẽ handle toast notification
     await authStore.logout()
-    
-    // ✅ Redirect về trang chủ để refresh UI
     await router.push('/')
-    
-    // ✅ Optional: Refresh page để clear any cached data
-    // window.location.reload()
   } catch (error) {
     console.error('Logout error:', error)
-    // Error toast đã được handle trong store nếu cần
   }
+}
+
+const handleImageError = (event) => {
+  event.target.style.display = 'none'
+  const placeholder = event.target.parentElement.querySelector('.placeholder-poster')
+  if (placeholder) {
+    placeholder.style.display = 'flex'
+  }
+}
+
+const getStatusText = (status) => {
+  const statusMap = {
+    'NOW_SHOWING': 'Đang chiếu',
+    'COMING_SOON': 'Sắp chiếu',
+    'ENDED': 'Đã kết thúc'
+  }
+  return statusMap[status] || status
 }
 
 // SEO Meta
 useSeoMeta({
   title: 'Trang chủ',
-  description: 'MovieBooking - Nền tảng đặt vé xem phim online hàng đầu Việt Nam. Đặt vé nhanh chóng, chọn ghế tự do, thanh toán an toàn.',
+  description: 'MovieBooking - Nền tảng đặt vé xem phim online hàng đầu Việt Nam.',
   ogTitle: 'MovieBooking - Đặt vé xem phim online',
-  ogDescription: 'Nền tảng đặt vé xem phim online hàng đầu Việt Nam',
-  ogImage: '/og-image.jpg'
+  ogDescription: 'Nền tảng đặt vé xem phim online hàng đầu Việt Nam'
 })
 
-// Page meta
 definePageMeta({
   title: 'Trang chủ - MovieBooking'
 })
 </script>
+
 
 
 <style scoped>
@@ -279,6 +446,27 @@ definePageMeta({
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #1f2937;
+  /* ✅ Thêm CSS để truncate text */
+  white-space: nowrap;
+  /* Không cho xuống dòng */
+  overflow: hidden;
+  /* Ẩn phần text thừa */
+  text-overflow: ellipsis;
+  /* Hiển thị dấu ... */
+  max-width: 100%;
+  /* Đảm bảo không vượt quá container */
+}
+
+/* ✅ Optional: Thêm tooltip để hiển thị tên đầy đủ khi hover */
+.movie-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  /* Cho tooltip */
 }
 
 .movie-genre {
@@ -438,8 +626,13 @@ definePageMeta({
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ✅ Responsive cho user welcome */
@@ -449,7 +642,7 @@ definePageMeta({
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .user-actions {
     flex-direction: column;
     align-items: center;
@@ -460,7 +653,7 @@ definePageMeta({
   .welcome-text {
     font-size: 1.1rem;
   }
-  
+
   .user-actions .btn {
     width: 100%;
     max-width: 280px;
@@ -473,6 +666,7 @@ definePageMeta({
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -484,29 +678,29 @@ definePageMeta({
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1.1rem;
   }
-  
+
   .hero-actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .movies-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem;
   }
-  
+
   .features-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .feature-card {
     padding: 1.5rem;
   }
@@ -516,14 +710,233 @@ definePageMeta({
   .hero {
     min-height: 60vh;
   }
-  
+
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .btn-large {
     padding: 0.875rem 1.5rem;
     font-size: 1rem;
   }
 }
+
+
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+}
+
+.loading-state .spin {
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+.error-state {
+  color: #ef4444;
+}
+
+.empty-state {
+  color: #9ca3af;
+}
+
+.movie-poster {
+  position: relative;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+
+.movie-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.movie-card:hover .movie-poster img {
+  transform: scale(1.05);
+}
+
+.movie-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.movie-card:hover .movie-overlay {
+  opacity: 1;
+}
+
+.play-button {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667eea;
+  transition: transform 0.2s ease;
+}
+
+.play-button:hover {
+  transform: scale(1.1);
+}
+
+.movie-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.movie-duration {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.movie-director {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.movie-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.status-now_showing {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-coming_soon {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-ended {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Responsive updates */
+@media (max-width: 768px) {
+  .movies-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .movie-info {
+    padding: 0.75rem;
+  }
+
+  .movie-title {
+    font-size: 1rem;
+  }
+}
+
+.pagination-wrapper {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background: #667eea;
+  color: white;
+}
+
+.pagination-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pagination-number {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.pagination-number:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.pagination-number.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.pagination-info {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .pagination-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .pagination-number {
+    width: 36px;
+    height: 36px;
+  }
+}
+
 </style>
