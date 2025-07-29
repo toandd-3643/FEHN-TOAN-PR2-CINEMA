@@ -12,6 +12,7 @@
             Đặt vé xem phim online nhanh chóng, tiện lợi
           </p>
 
+
           <div class="hero-actions">
             <!-- Hiển thị khi chưa đăng nhập -->
             <template v-if="!authStore.isLoggedIn">
@@ -50,22 +51,24 @@
               </div>
             </template>
           </div>
+
+          <div class="search-section">
+            <SearchDropdown @movie-selected="handleMovieSelected" @search-changed="handleSearchChanged" />
+          </div>
+
         </div>
       </div>
     </section>
 
-    <!-- Featured Movies với Pagination -->
     <section class="featured-movies">
       <div class="container">
         <h2 class="section-title">Phim đang hot</h2>
 
-        <!-- Loading state -->
         <div v-if="moviesPending" class="loading-state">
           <Icon name="mdi:loading" class="spin" size="48" />
           <p>Đang tải danh sách phim...</p>
         </div>
 
-        <!-- Error state -->
         <div v-else-if="moviesError" class="error-state">
           <Icon name="mdi:alert-circle" size="48" />
           <p>Không thể tải danh sách phim. Vui lòng thử lại sau.</p>
@@ -75,26 +78,14 @@
           </button>
         </div>
 
-        <!-- Movies Grid -->
         <div v-else-if="movies && movies.length > 0" class="movies-grid">
-          <NuxtLink 
-            v-for="movie in movies" 
-            :key="movie.id" 
-            :to="`/movies/${movie.id}`" 
-            class="movie-card"
-          >
+          <NuxtLink v-for="movie in movies" :key="movie.id" :to="`/movies/${movie.id}`" class="movie-card">
             <div class="movie-poster">
-              <img 
-                v-if="movie.poster" 
-                :src="movie.poster" 
-                :alt="movie.title"
-                @error="handleImageError"
-              />
+              <img v-if="movie.poster" :src="movie.poster" :alt="movie.title" @error="handleImageError" />
               <div v-else class="placeholder-poster">
                 <Icon name="mdi:movie" size="48" />
               </div>
 
-              <!-- Overlay with play button -->
               <div class="movie-overlay">
                 <div class="play-button">
                   <Icon name="mdi:play" size="32" />
@@ -127,55 +118,36 @@
           <p>Hiện tại chưa có phim nào đang chiếu.</p>
         </div>
 
-        <!-- ✅ Pagination Component -->
         <div v-if="pagination.totalPages > 1" class="pagination-wrapper">
           <nav class="pagination">
-            <!-- Previous button -->
-            <button 
-              @click="prevPage" 
-              :disabled="!pagination.hasPrevPage"
-              class="pagination-btn"
-              :class="{ disabled: !pagination.hasPrevPage }"
-            >
+            <button @click="prevPage" :disabled="!pagination.hasPrevPage" class="pagination-btn"
+              :class="{ disabled: !pagination.hasPrevPage }">
               <Icon name="mdi:chevron-left" />
               Trước
             </button>
 
-            <!-- Page numbers -->
             <div class="pagination-numbers">
-              <button
-                v-for="page in getVisiblePages()"
-                :key="page"
-                @click="goToPage(page)"
-                class="pagination-number"
-                :class="{ active: page === currentPage }"
-              >
+              <button v-for="page in getVisiblePages()" :key="page" @click="goToPage(page)" class="pagination-number"
+                :class="{ active: page === currentPage }">
                 {{ page }}
               </button>
             </div>
 
-            <!-- Next button -->
-            <button 
-              @click="nextPage" 
-              :disabled="!pagination.hasNextPage"
-              class="pagination-btn"
-              :class="{ disabled: !pagination.hasNextPage }"
-            >
+            <button @click="nextPage" :disabled="!pagination.hasNextPage" class="pagination-btn"
+              :class="{ disabled: !pagination.hasNextPage }">
               Sau
               <Icon name="mdi:chevron-right" />
             </button>
           </nav>
 
-          <!-- Pagination info -->
           <div class="pagination-info">
-            Hiển thị {{ pagination.startIndex }} - {{ pagination.endIndex }} 
+            Hiển thị {{ pagination.startIndex }} - {{ pagination.endIndex }}
             trong tổng số {{ pagination.totalItems }} phim
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Features (giữ nguyên) -->
     <section class="features">
       <div class="container">
         <h2 class="section-title">Tại sao chọn MovieBooking?</h2>
@@ -212,11 +184,9 @@ const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-// ✅ Pagination state
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const itemsPerPage = ref(4)
 
-// ✅ Fetch movies với pagination
 const { data: moviesData, pending: moviesPending, error: moviesError, refresh: refreshMovies } = await useFetch('/api/movies/movies', {
   query: {
     page: currentPage,
@@ -226,22 +196,27 @@ const { data: moviesData, pending: moviesPending, error: moviesError, refresh: r
   watch: [currentPage]
 })
 
-// Computed properties
 const movies = computed(() => moviesData.value?.data || [])
 const pagination = computed(() => moviesData.value?.pagination || {})
 
-// ✅ Pagination methods
+
+const handleMovieSelected = (movie) => {
+  console.log('Movie selected:', movie)
+}
+
+const handleSearchChanged = (searchTerm) => {
+  console.log('Search changed:', searchTerm)
+}
+
 const goToPage = (page) => {
   if (page < 1 || page > pagination.value.totalPages) return
-  
+
   currentPage.value = page
-  
-  // Update URL
+
   router.push({
     query: { ...route.query, page }
   })
-  
-  // Scroll to top
+
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -257,15 +232,14 @@ const prevPage = () => {
   }
 }
 
-// ✅ Get visible page numbers
 const getVisiblePages = () => {
   const total = pagination.value.totalPages
   const current = currentPage.value
   const delta = 2
-  
+
   let start = Math.max(1, current - delta)
   let end = Math.min(total, current + delta)
-  
+
   if (end - start < delta * 2) {
     if (start === 1) {
       end = Math.min(total, start + delta * 2)
@@ -273,16 +247,15 @@ const getVisiblePages = () => {
       start = Math.max(1, end - delta * 2)
     }
   }
-  
+
   const pages = []
   for (let i = start; i <= end; i++) {
     pages.push(i)
   }
-  
+
   return pages
 }
 
-// Existing methods
 const handleLogout = async () => {
   try {
     await authStore.logout()
@@ -309,7 +282,6 @@ const getStatusText = (status) => {
   return statusMap[status] || status
 }
 
-// SEO Meta
 useSeoMeta({
   title: 'Trang chủ',
   description: 'MovieBooking - Nền tảng đặt vé xem phim online hàng đầu Việt Nam.',
@@ -325,14 +297,12 @@ definePageMeta({
 
 
 <style scoped>
-/* Hero Section */
 .hero {
   position: relative;
   min-height: 70vh;
   display: flex;
   align-items: center;
   color: white;
-  overflow: hidden;
 }
 
 .hero-background {
@@ -399,7 +369,6 @@ definePageMeta({
   color: #1f2937;
 }
 
-/* Movies Grid */
 .movies-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -446,18 +415,12 @@ definePageMeta({
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #1f2937;
-  /* ✅ Thêm CSS để truncate text */
   white-space: nowrap;
-  /* Không cho xuống dòng */
   overflow: hidden;
-  /* Ẩn phần text thừa */
   text-overflow: ellipsis;
-  /* Hiển thị dấu ... */
   max-width: 100%;
-  /* Đảm bảo không vượt quá container */
 }
 
-/* ✅ Optional: Thêm tooltip để hiển thị tên đầy đủ khi hover */
 .movie-card {
   background: white;
   border-radius: 12px;
@@ -466,7 +429,6 @@ definePageMeta({
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
-  /* Cho tooltip */
 }
 
 .movie-genre {
@@ -483,7 +445,6 @@ definePageMeta({
   font-weight: 600;
 }
 
-/* Features Grid */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -527,7 +488,6 @@ definePageMeta({
   line-height: 1.6;
 }
 
-/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -582,7 +542,6 @@ definePageMeta({
   color: white;
 }
 
-/* ✅ User Welcome Styles */
 .user-welcome {
   text-align: center;
   width: 100%;
@@ -607,7 +566,6 @@ definePageMeta({
   flex-wrap: wrap;
 }
 
-/* ✅ Additional button styles */
 .btn-outline-white {
   background: rgba(255, 255, 255, 0.1);
   color: white;
@@ -620,7 +578,6 @@ definePageMeta({
   border-color: rgba(255, 255, 255, 0.7);
 }
 
-/* ✅ Loading animation */
 .spin {
   animation: spin 1s linear infinite;
 }
@@ -635,7 +592,6 @@ definePageMeta({
   }
 }
 
-/* ✅ Responsive cho user welcome */
 @media (max-width: 768px) {
   .welcome-text {
     font-size: 1.25rem;
@@ -660,7 +616,6 @@ definePageMeta({
   }
 }
 
-/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -673,7 +628,6 @@ definePageMeta({
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;
@@ -836,7 +790,6 @@ definePageMeta({
   color: #6b7280;
 }
 
-/* Responsive updates */
 @media (max-width: 768px) {
   .movies-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -927,16 +880,20 @@ definePageMeta({
     flex-wrap: wrap;
     gap: 0.25rem;
   }
-  
+
   .pagination-btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
   }
-  
+
   .pagination-number {
     width: 36px;
     height: 36px;
   }
 }
 
+.search-section {
+  margin: 2rem 0;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
 </style>
