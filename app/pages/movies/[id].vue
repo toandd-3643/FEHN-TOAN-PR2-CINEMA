@@ -25,7 +25,7 @@
           <img v-if="movie.poster" :src="movie.poster" :alt="movie.title" />
           <div class="hero-overlay"></div>
         </div>
-        
+
         <div class="container">
           <div class="movie-hero-content">
             <div class="movie-poster">
@@ -37,7 +37,7 @@
 
             <div class="movie-info">
               <h1 class="movie-title">{{ movie.title }}</h1>
-              
+
               <div class="movie-meta">
                 <div class="rating-section">
                   <div class="average-rating">
@@ -76,19 +76,12 @@
               </div>
 
               <div class="movie-actions">
-                <button 
-                  v-if="movie.trailer"
-                  @click="showTrailer = true"
-                  class="btn btn-primary btn-large"
-                >
+                <button v-if="movie.trailer" @click="showTrailer = true" class="btn btn-primary btn-large">
                   <Icon name="mdi:play" />
                   Xem trailer
                 </button>
-                <button 
-                  v-if="movie.showtimes && movie.showtimes.length > 0"
-                  @click="scrollToShowtimes"
-                  class="btn btn-secondary btn-large"
-                >
+                <button v-if="movie.showtimes && movie.showtimes.length > 0" @click="scrollToShowtimes"
+                  class="btn btn-secondary btn-large">
                   <Icon name="mdi:ticket" />
                   Đặt vé
                 </button>
@@ -123,9 +116,9 @@
                 <div class="showtime-price">
                   {{ formatPrice(showtime.price) }}
                 </div>
-                <button class="btn btn-primary btn-small">
+                <NuxtLink :to="`/booking/${showtime.id}`" class="btn btn-primary btn-small">
                   Chọn ghế
-                </button>
+                </NuxtLink>
               </div>
             </div>
           </div>
@@ -141,24 +134,18 @@
               <div class="average-rating-large">
                 <span class="rating-number">{{ movie.averageRating }}</span>
                 <div class="stars">
-                  <Icon 
-                    v-for="i in 5" 
-                    :key="i"
-                    name="mdi:star"
-                    :class="{ filled: i <= Math.round(movie.averageRating) }"
-                  />
+                  <Icon v-for="i in 5" :key="i" name="mdi:star"
+                    :class="{ filled: i <= Math.round(movie.averageRating) }" />
                 </div>
                 <span class="total-reviews">{{ movie.totalReviews }} đánh giá</span>
               </div>
-              
+
               <div class="rating-breakdown">
                 <div v-for="(count, star) in movie.ratingStats" :key="star" class="rating-bar">
                   <span class="star-label">{{ star }} sao</span>
                   <div class="bar">
-                    <div 
-                      class="bar-fill" 
-                      :style="{ width: `${movie.totalReviews > 0 ? (count / movie.totalReviews) * 100 : 0}%` }"
-                    ></div>
+                    <div class="bar-fill"
+                      :style="{ width: `${movie.totalReviews > 0 ? (count / movie.totalReviews) * 100 : 0}%` }"></div>
                   </div>
                   <span class="count">{{ count }}</span>
                 </div>
@@ -167,13 +154,9 @@
           </div>
 
           <!-- Review form -->
-          <MovieReviewForm 
-            v-if="authStore.isLoggedIn"
-            :movie-id="movie.id"
-            :existing-review="userReview"
-            @review-submitted="handleReviewSubmitted"
-          />
-          
+          <MovieReviewForm v-if="authStore.isLoggedIn" :movie-id="movie.id" :existing-review="userReview"
+            @review-submitted="handleReviewSubmitted" />
+
           <div v-else class="login-prompt">
             <p>Vui lòng đăng nhập để đánh giá phim</p>
             <NuxtLink to="/login" class="btn btn-primary">Đăng nhập</NuxtLink>
@@ -181,24 +164,16 @@
 
           <!-- Reviews list -->
           <div class="reviews-list">
-            <MovieReviewItem
-              v-for="review in movie.reviews"
-              :key="review.id"
-              :review="review"
+            <MovieReviewItem v-for="review in movie.reviews" :key="review.id" :review="review"
               :can-delete="authStore.user?.id === review.user.id || authStore.isAdmin"
-              @review-deleted="handleReviewDeleted"
-            />
+              @review-deleted="handleReviewDeleted" />
           </div>
         </div>
       </section>
     </template>
 
     <!-- Trailer modal -->
-    <MovieTrailerModal 
-      v-if="showTrailer && movie?.trailer"
-      :trailer-url="movie.trailer"
-      @close="showTrailer = false"
-    />
+    <MovieTrailerModal v-if="showTrailer && movie?.trailer" :trailer-url="movie.trailer" @close="showTrailer = false" />
   </div>
 </template>
 
@@ -249,7 +224,7 @@ const handleReviewSubmitted = (data) => {
     movie.value.averageRating = data.movieRating.average
     movie.value.totalReviews = data.movieRating.totalReviews
   }
-  
+
   refresh() // Refresh toàn bộ data để đảm bảo consistency
 }
 
@@ -258,7 +233,7 @@ const handleReviewDeleted = async (reviewId) => {
     const response = await $fetch(`/api/reviews/${reviewId}`, {
       method: 'DELETE'
     })
-    
+
     if (response.success && movie.value) {
       // Cập nhật rating ngay lập tức
       movie.value.averageRating = response.movieRating.average
@@ -266,7 +241,7 @@ const handleReviewDeleted = async (reviewId) => {
     }
   } catch (error) {
   }
-  
+
   refresh() // Refresh data
 }
 
@@ -336,7 +311,7 @@ definePageMeta({
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
   z-index: -1;
 }
 
@@ -354,18 +329,18 @@ definePageMeta({
 .movie-poster img {
   width: 100%;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .poster-placeholder {
   width: 100%;
   aspect-ratio: 2/3;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .movie-info {
@@ -404,7 +379,7 @@ definePageMeta({
 }
 
 .rating-count {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .movie-details {
@@ -418,12 +393,12 @@ definePageMeta({
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .movie-crew .crew-item {
   margin-bottom: 0.5rem;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .movie-actions {
@@ -483,7 +458,7 @@ definePageMeta({
   padding: 1.5rem;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
 }
 
@@ -695,7 +670,12 @@ definePageMeta({
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
