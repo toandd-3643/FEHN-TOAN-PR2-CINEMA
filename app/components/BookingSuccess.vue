@@ -43,7 +43,7 @@
         <Icon name="mdi:history" />
         Xem lịch sử đặt vé
       </NuxtLink>
-      <NuxtLink to="/movies" class="btn btn-secondary">
+      <NuxtLink to="/" class="btn btn-secondary">
         <Icon name="mdi:movie" />
         Đặt vé phim khác
       </NuxtLink>
