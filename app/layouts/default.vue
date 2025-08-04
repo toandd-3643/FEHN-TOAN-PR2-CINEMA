@@ -11,7 +11,7 @@
         <div class="nav-links">
           <NuxtLink to="/">Phim</NuxtLink>
           <NuxtLink to="/cinemas">Rạp</NuxtLink>
-          <NuxtLink to="/">Tin tức</NuxtLink>
+          <NuxtLink to="/news">Tin tức</NuxtLink>
           <NuxtLink to="/profile/bookings">Vé đã đặt</NuxtLink>
         </div>
         <div class="nav-actions">

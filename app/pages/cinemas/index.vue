@@ -46,31 +46,26 @@ const cinemas = computed < Cinema[] > (() => data.value?.data || [])
   min-height: 100vh;
   padding: 3rem 0;
 }
-
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
 }
-
 h1 {
   font-size: 2.2rem;
   font-weight: bold;
   color: #4f46e5;
   margin-bottom: 0.7rem;
 }
-
 .cinema-list-hero p {
   color: #555;
   margin-bottom: 2.5rem;
 }
-
 .cinema-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
-
 .cinema-card {
   background: white;
   border-radius: 18px;
@@ -84,13 +79,11 @@ h1 {
   transition: transform 0.15s, box-shadow 0.15s;
   border: 1px solid #e0e7ff;
 }
-
 .cinema-card:hover {
   transform: translateY(-4px) scale(1.03);
   box-shadow: 0 12px 36px #a5b4fc55;
   border-color: #6366f1;
 }
-
 .card-header {
   display: flex;
   align-items: center;
@@ -113,7 +106,6 @@ h3 {
   font-size: 1.2rem;
   font-weight: bold;
 }
-
 .card-content {
   color: #555;
   font-size: 1rem;
@@ -121,7 +113,6 @@ h3 {
   flex-direction: column;
   gap: 0.45rem;
 }
-
 .card-content svg {
   color: #818cf8;
   margin-right: 5px;
