@@ -167,6 +167,17 @@
           </div>
 
           <!-- Review form -->
+          <MovieReviewForm 
+            v-if="authStore.isLoggedIn"
+            :movie-id="movie.id"
+            :existing-review="userReview"
+            @review-submitted="handleReviewSubmitted"
+          />
+          
+          <div v-else class="login-prompt">
+            <p>Vui lòng đăng nhập để đánh giá phim</p>
+            <NuxtLink to="/login" class="btn btn-primary">Đăng nhập</NuxtLink>
+          </div>
 
           <!-- Reviews list -->
           <div class="reviews-list">
@@ -206,6 +217,12 @@ const { data: movieData, pending, error, refresh } = await useFetch(`/api/movies
 
 const movie = computed(() => movieData.value?.data)
 
+// User's existing review
+const userReview = computed(() => {
+  if (!authStore.isLoggedIn || !movie.value?.reviews) return null
+  return movie.value.reviews.find(review => review.user.id === authStore.user?.id)
+})
+
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('vi-VN')
 }
@@ -227,8 +244,33 @@ const scrollToShowtimes = () => {
   }
 }
 
+const handleReviewSubmitted = (data) => {
+  if (movie.value && data.movieRating) {
+    movie.value.averageRating = data.movieRating.average
+    movie.value.totalReviews = data.movieRating.totalReviews
+  }
+  
+  refresh() // Refresh toàn bộ data để đảm bảo consistency
+}
 
+const handleReviewDeleted = async (reviewId) => {
+  try {
+    const response = await $fetch(`/api/reviews/${reviewId}`, {
+      method: 'DELETE'
+    })
+    
+    if (response.success && movie.value) {
+      // Cập nhật rating ngay lập tức
+      movie.value.averageRating = response.movieRating.average
+      movie.value.totalReviews = response.movieRating.totalReviews
+    }
+  } catch (error) {
+  }
+  
+  refresh() // Refresh data
+}
 
+// SEO
 useSeoMeta({
   title: computed(() => movie.value ? `${movie.value.title} - MovieBooking` : 'Chi tiết phim'),
   description: computed(() => movie.value?.description || 'Xem chi tiết phim tại MovieBooking'),

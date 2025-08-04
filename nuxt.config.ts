@@ -1,4 +1,4 @@
-// nuxt.config.ts
+// nuxt.config.ts - Full improved version
 export default defineNuxtConfig({
   // ✅ Nuxt 4 configuration
   future: {
@@ -7,7 +7,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-07-28',
   devtools: { enabled: true },
   
-  // ✅ Modules configuration
   modules: [
     '@nuxt/icon',
     '@nuxt/image',
@@ -17,22 +16,17 @@ export default defineNuxtConfig({
     '@vueuse/nuxt'
   ],
   
-  // ✅ CSS configuration
   css: ['~/assets/css/main.css'],
   
-  // ✅ Runtime configuration
   runtimeConfig: {
-    // Server-side environment variables
     jwtSecret: process.env.JWT_SECRET || 'your-secret-key',
     databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
     
-    // Public environment variables
     public: {
       appName: 'MovieBooking'
     }
   },
   
-  // ✅ Auto-imports configuration
   imports: {
     dirs: [
       'stores',
@@ -55,48 +49,71 @@ export default defineNuxtConfig({
     ]
   },
   
-  // ✅ Pinia configuration
   pinia: {
     storesDirs: ['./stores/**'],
   },
   
-  // ✅ Alias configuration (Nuxt 4)
   alias: {
     '@server': './server',
     '#server': './server'
   },
   
-  // ✅ TypeScript configuration
   typescript: {
     strict: false,
     typeCheck: false
   },
   
-  // ✅ SSR configuration
   ssr: true,
   
-  // ✅ App configuration để tránh hydration issues
   app: {
     head: {
       viewport: 'width=device-width,initial-scale=1',
-      charset: 'utf-8'
+      charset: 'utf-8',
+      link: [
+        { rel: 'preconnect', href: 'https://www.youtube.com', crossorigin: '' },
+        { rel: 'preconnect', href: 'https://www.youtube-nocookie.com', crossorigin: '' },
+        { rel: 'dns-prefetch', href: 'https://img.youtube.com' },
+        { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' }
+      ],
+      meta: [
+        { name: 'referrer', content: 'strict-origin-when-cross-origin' }
+      ]
     }
   },
   
-  // ✅ Experimental features
-  experimental: {
-    payloadExtraction: false,
-    viewTransition: false
+  routeRules: {
+    '/movies/**': {
+      headers: {
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+      }
+    }
   },
   
-  // ✅ Nitro configuration
+  experimental: {
+    payloadExtraction: false,
+    viewTransition: false,
+    asyncContext: true
+  },
+  
   nitro: {
     experimental: {
       wasm: true
+    },
+    routeRules: {
+      '/**': {
+        headers: {
+          'Cross-Origin-Embedder-Policy': 'unsafe-none',
+          'Cross-Origin-Opener-Policy': 'unsafe-none'
+        }
+      }
+    },
+    prerender: {
+      crawlLinks: true,
+      failOnError: false 
     }
   },
   
-  // ✅ Vite configuration để tránh lỗi
   vite: {
     vue: {
       script: {
@@ -105,7 +122,20 @@ export default defineNuxtConfig({
       }
     },
     optimizeDeps: {
-      include: ['pinia', '@vueuse/core', '@vueuse/nuxt']
+      include: ['pinia', '@vueuse/core', '@vueuse/nuxt'],
+      exclude: ['youtube-player', 'video.js'] 
+    },
+    server: {
+      cors: true,
+      headers: {
+        'Cross-Origin-Embedder-Policy': 'unsafe-none',
+        'Cross-Origin-Opener-Policy': 'unsafe-none'
+      }
+    },
+    build: {
+      rollupOptions: {
+        external: ['youtube-player']
+      }
     }
-  }
+  },
 })
