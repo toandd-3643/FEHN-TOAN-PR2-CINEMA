@@ -12,7 +12,7 @@
           <NuxtLink to="/">Phim</NuxtLink>
           <NuxtLink to="/">Rạp</NuxtLink>
           <NuxtLink to="/">Tin tức</NuxtLink>
-          <NuxtLink to="/">Liên hệ</NuxtLink>
+          <NuxtLink to="/profile/bookings">Vé đã đặt</NuxtLink>
         </div>
         <div class="nav-actions">
           <template v-if="!authStore.isLoggedIn">
