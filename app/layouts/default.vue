@@ -14,6 +14,7 @@
           <NuxtLink to="/news">Tin tức</NuxtLink>
           <NuxtLink to="/profile/bookings">Vé đã đặt</NuxtLink>
           <NuxtLink to="/contact">Liên hệ hỗ trợ</NuxtLink>
+          <NuxtLink to="/promotions">Khuyến mại</NuxtLink>
         </div>
         <div class="nav-actions">
           <template v-if="!authStore.isLoggedIn">
