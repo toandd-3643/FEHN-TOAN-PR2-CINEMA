@@ -23,7 +23,7 @@
 
     <div v-else class="container">
       <nav class="breadcrumb">
-        <NuxtLink to="/movies">Phim</NuxtLink>
+        <NuxtLink to="/">Phim</NuxtLink>
         <Icon name="mdi:chevron-right" />
         <span>Đặt vé</span>
       </nav>

@@ -74,7 +74,6 @@ const formatDate = (date) => {
   margin-bottom: 1.5rem;
   text-decoration: none;
 }
-
 .back-link svg {
   margin-right: 0.5rem;
 }

@@ -16,7 +16,7 @@
           <div class="hero-actions">
             <!-- Hiển thị khi chưa đăng nhập -->
             <template v-if="!authStore.isLoggedIn">
-              <NuxtLink to="/movies" class="btn btn-primary btn-large">
+              <NuxtLink to="/" class="btn btn-primary btn-large">
                 <Icon name="mdi:movie" />
                 Xem phim ngay
               </NuxtLink>
@@ -34,7 +34,7 @@
                   Chào mừng, {{ authStore.user?.fullName }}!
                 </h3>
                 <div class="user-actions">
-                  <NuxtLink to="/movies" class="btn btn-primary btn-large">
+                  <NuxtLink to="/" class="btn btn-primary btn-large">
                     <Icon name="mdi:movie" />
                     Xem phim ngay
                   </NuxtLink>
