@@ -37,7 +37,34 @@ model Screen {
   cinema    Cinema    @relation(fields: [cinemaId], references: [id])
   cinemaId  Int
   capacity  Int
+  rows      Int       @default(10)
+  seatsPerRow Int     @default(12)
   showtimes Showtime[]
+  seats     Seat[]
+}
+
+model Seat {
+  id       Int    @id @default(autoincrement())
+  screen   Screen @relation(fields: [screenId], references: [id])
+  screenId Int
+  row      String // A, B, C...
+  number   Int    // 1, 2, 3...
+  type     SeatType @default(REGULAR)
+  isActive Boolean @default(true)
+  bookingSeats BookingSeat[] // ✅ Relationship với booking
+  
+  @@unique([screenId, row, number])
+}
+
+model BookingSeat {
+  id        Int     @id @default(autoincrement())
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int
+  seat      Seat    @relation(fields: [seatId], references: [id])
+  seatId    Int
+  price     Float   // Giá của ghế này (có thể khác nhau theo loại ghế)
+  
+  @@unique([bookingId, seatId])
 }
 
 model Movie {
@@ -76,11 +103,15 @@ model Booking {
   userId     Int
   showtime   Showtime @relation(fields: [showtimeId], references: [id])
   showtimeId Int
-  seats      String   // JSON string: ["A1", "A2"]
+  seats      String
+  bookingSeats BookingSeat[]
   totalPrice Float
   status     BookingStatus @default(PENDING)
   bookingCode String   @unique
+  paymentMethod String?
+  paymentStatus PaymentStatus @default(PENDING)
   createdAt  DateTime @default(now())
+  expiresAt  DateTime?
 }
 
 model Review {
@@ -118,6 +149,47 @@ model Promotion {
   createdAt   DateTime @default(now())
 }
 
+model Contact {
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  type        ContactType   @default(SUPPORT)
+  status      ContactStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum ContactType {
+  SUPPORT     // Hỗ trợ kỹ thuật
+  FEEDBACK    // Góp ý
+  COMPLAINT   // Khiếu nại
+  SUGGESTION  // Đề xuất
+}
+
+enum ContactStatus {
+  PENDING     // Chờ xử lý
+  IN_PROGRESS // Đang xử lý
+  RESOLVED    // Đã giải quyết
+  CLOSED      // Đã đóng
+}
+
+enum SeatType {
+  REGULAR
+  VIP
+  COUPLE
+  DISABLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
 enum Role {
   USER
   ADMIN
@@ -133,4 +205,5 @@ enum BookingStatus {
   PENDING
   CONFIRMED
   CANCELLED
+  EXPIRED
 }
