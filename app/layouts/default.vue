@@ -13,6 +13,7 @@
           <NuxtLink to="/cinemas">Rạp</NuxtLink>
           <NuxtLink to="/news">Tin tức</NuxtLink>
           <NuxtLink to="/profile/bookings">Vé đã đặt</NuxtLink>
+          <NuxtLink to="/contact">Liên hệ hỗ trợ</NuxtLink>
         </div>
         <div class="nav-actions">
           <template v-if="!authStore.isLoggedIn">
