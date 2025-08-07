@@ -250,7 +250,6 @@ definePageMeta({
 })
 </script>
 
-
 <style scoped>
 .contact-page {
   min-height: 100vh;
