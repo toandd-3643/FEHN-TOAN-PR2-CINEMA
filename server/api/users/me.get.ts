@@ -9,7 +9,7 @@ interface JWTPayload {
   exp?: number
 }
 
-type UserResponse = Pick<User, 'id' | 'email' | 'fullName' | 'phone' | 'avatar'>
+type UserResponse = Pick<User, 'id' | 'email' | 'fullName' | 'phone' | 'avatar' | 'role'>
 
 type ApiResponse = {
   success: boolean
@@ -72,7 +72,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse> => {
         email: true,
         fullName: true,
         phone: true,
-        avatar: true
+        avatar: true,
+        role: true
       }
     })
 
